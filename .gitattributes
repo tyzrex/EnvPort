@@ -1,6 +1,9 @@
 # Keep source and documentation consistent across developer platforms.
 * text=auto eol=lf
 
+# Markdown's two-space hard line breaks are intentional whitespace.
+*.md whitespace=-blank-at-eol
+
 # Preserve encrypted and byte-exact compatibility fixtures without conversion.
 *.age binary
 *.enc binary

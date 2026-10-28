@@ -1,0 +1,19 @@
+# Threat model
+
+Protect environment file contents and private snapshot metadata from bucket readers, stolen remote objects and unauthenticated modification. All secret payloads, paths, identities, file hashes and manifests are age-encrypted before storage. Wrong keys and corrupt/truncated objects fail authentication. Random IDs and per-vault prefixes separate namespaces; cryptographic isolation comes from independent vault keys, not prefixes.
+
+Trust the local OS, Go runtime, installed executable, approved filesystem roots and authorized key holders. A compromised user account or endpoint can read live .env files, process memory and environment passphrases. No encryption product prevents that. Local project metadata is protected by directory permissions, not full-disk encryption. Never place state inside a shared/untrusted directory. Unix permissions are enforced; Windows restrictive ACL support needs separate verification before support claims.
+
+Root confinement, portable path validation, static symlink rejection, create-exclusive staging and atomic no-replace writes prevent common restore escapes and accidental clobbering. Bind mounts and malicious same-user activity are outside the current safety guarantee. Explicit replacement rechecks target inode/hash and retains an independent private preimage; active in-place modification concurrent with replacement is a residual race and release-review concern. Stop editors/watchers before explicitly accepting remote replacements. Plaintext temp/preimage files may survive a crash; they have 0600 permissions and stay in the approved project tree.
+
+CAS prevents lost head updates when the backend enforces it; it does not prove freshness. Checkpoints reject returning-device rollback to unrelated or older history. A fresh join cannot prove the bucket contains the newest history without an external trusted witness. Bucket deletion, malicious object removal and denial of service remain possible; retain independent recovery/storage copies.
+
+A shared root holder can forge author metadata. A copied key cannot be revoked retroactively. Device compromise requires rotating affected application credentials. No multi-user hosted authorization or team-vault claim applies.
+
+Passphrases should be independent and high entropy. Interactive entry hides typing. Environment variables support automation but can be exposed by process inspection/crash tooling. No plaintext secrets or credentials are intentionally logged. AWS provider errors are reduced to safe error classes. Telemetry is absent.
+
+## Built-in LAN host
+
+The host is a storage operator, not a vault decryption principal. It sees opaque object namespaces, access timing/lengths and public transport identities. TLS client keys originate on clients and remain encrypted locally; the host TLS key is separately encrypted under its host passphrase. Request fingerprint confirmation and exact server trust are explicit, with no unauthenticated bootstrap API or silent trust-on-first-use. Every request checks certificate/namespace authorization; read-only and revoked clients cannot write, and a copied transport grant does not unlock vault ciphertext.
+
+The transport uses TLS 1.3, private-IP endpoints, no proxy/DNS/redirect/relay, bounded headers/bodies/connections/operations and timeouts. Authorized clients/admins can still cause denial of service or remove/roll back ciphertext. Revocation stops subsequent requests, not already copied data or in-flight operations, and does not rotate vault keys. Certificates expire after one year; discovery, automatic renewal, per-namespace quotas, native Windows ACL support and independent server security review remain incomplete. Enrollment documents expose public connection metadata and should be transported privately. See LAN.md for exact operating limits and backup of complete host state.
