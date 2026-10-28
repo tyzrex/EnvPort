@@ -1,0 +1,35 @@
+name: optional-live-s3
+on:
+  workflow_dispatch:
+    inputs:
+      provider:
+        description: Dedicated test provider (scoped bucket credentials required)
+        type: choice
+        required: true
+        options: [R2, AWS]
+permissions:
+  contents: read
+jobs:
+  compatibility:
+    runs-on: ubuntu-latest
+    environment: live-storage-tests
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.3'
+          cache: true
+      - name: Probe scoped provider and round-trip synthetic ciphertext
+        run: go test -count=1 -v ./internal/storage/s3 -run TestLiveS3Compatibility
+        env:
+          AWS_EC2_METADATA_DISABLED: 'true'
+          AWS_ACCESS_KEY_ID: ${{ secrets[format('{0}_TEST_ACCESS_KEY_ID', inputs.provider)] }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets[format('{0}_TEST_SECRET_ACCESS_KEY', inputs.provider)] }}
+          ENVPORT_LIVE_S3_BUCKET: ${{ secrets[format('{0}_TEST_BUCKET', inputs.provider)] }}
+          ENVPORT_LIVE_S3_ENDPOINT: ${{ vars[format('{0}_TEST_ENDPOINT', inputs.provider)] }}
+          ENVPORT_LIVE_S3_REGION: ${{ vars[format('{0}_TEST_REGION', inputs.provider)] }}
+      - name: Require credentials rather than reporting a skipped test as verified
+        shell: bash
+        env:
+          TEST_BUCKET: ${{ secrets[format('{0}_TEST_BUCKET', inputs.provider)] }}
+        run: test -n "$TEST_BUCKET"
