@@ -1,0 +1,43 @@
+# Generated executables, release archives and disposable development state.
+/bin/
+/dist/
+/envport
+/envport.exe
+/.envport-testdata/
+*.test
+*.prof
+*.pprof
+*.coverprofile
+/coverage/
+/coverage.out
+/coverage.html
+
+# Private runtime state, vault objects and credential exports.
+*.db
+*.db-shm
+*.db-wal
+*.age
+key.bin
+*.key
+*.pem
+*.p12
+*.pfx
+.env
+.env.*
+!.env.example
+
+# Personal agent/cloud configuration does not belong in the repository.
+/.claude/
+/.codex/
+/.agents/
+/.aws/
+
+# Dependency caches, interpreter caches and OS metadata.
+/node_modules/
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+
+# Deliberately public synthetic compatibility fixtures, never real vaults.
+!testdata/protocol/**/*.age
